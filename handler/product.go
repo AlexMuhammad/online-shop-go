@@ -95,6 +95,13 @@ func UpdateProduct(db *sql.DB) gin.HandlerFunc {
 }
 func DeleteProduct(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		id := c.Param("id")
 
+		if err := model.DeleteProduct(db, id); err != nil {
+			log.Printf("Something went wrong: %v\n", err)
+			c.JSON(400, gin.H{"error": "Data is not valid"})
+			return
+		}
+		c.JSON(204, gin.H{"message": "Success to delete data"})
 	}
 }

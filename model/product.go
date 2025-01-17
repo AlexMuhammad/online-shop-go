@@ -82,3 +82,16 @@ func UpdateProduct(db *sql.DB, product Product) error {
 	}
 	return nil
 }
+
+func DeleteProduct(db *sql.DB, id string) error {
+	if db == nil {
+		return ErrorDBNil
+	}
+	query := `UPDATE products set is_deleted=TRUE WHERE id=$1`
+
+	_, err := db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
