@@ -4,6 +4,14 @@
 
 The Online Shop Fastcampus API is designed to manage an online shop with essential features such as listing products, processing orders, and managing product inventory. This document outlines the key requirements and functionalities to help track the API development.
 
+### Modules
+
+- gin-gonic/gin
+- database/sql
+- jackc/pgx
+- google/uuid
+- x/crypto
+
 ### Features
 
 1. Public Features
