@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"online-shop-fastcampus/handler"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -29,9 +31,22 @@ func main() {
 		fmt.Printf("Failed to migrate table %v\n", err)
 	}
 
+	r := gin.Default()
+
+	r.GET("/api/v1/products", handler.ListProducts(db))
+	r.GET("/api/v1/products/:id")
+	r.POST("/api/v1/checkout")
+
+	r.POST("/api/v1/orders/:id/confirm")
+	r.GET("/api/v1/orders/:id")
+
+	r.GET("/admin/products")
+	r.POST("/admin/products/:id")
+	r.DELETE("/admin/products/:id")
+
 	server := &http.Server{
-		Addr:    ":8000",
-		Handler: nil,
+		Addr:    ":8080",
+		Handler: r,
 	}
 
 	if err = server.ListenAndServe(); err != nil {
