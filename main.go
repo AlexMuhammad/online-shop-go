@@ -34,7 +34,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/api/v1/products", handler.ListProducts(db))
-	r.GET("/api/v1/products/:id")
+	r.GET("/api/v1/products/:id", handler.GetProduct(db))
 	r.POST("/api/v1/checkout")
 
 	r.POST("/api/v1/orders/:id/confirm")
