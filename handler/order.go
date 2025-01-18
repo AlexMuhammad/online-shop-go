@@ -157,6 +157,29 @@ func ConfirmOrder(db *sql.DB) gin.HandlerFunc {
 }
 func GetOrder(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		id := c.Param("id")
+		passcode := c.Query("passcode")
 
+		order, err := model.SelectOrderByID(db, id)
+		if err != nil {
+			log.Printf("Something went wrong when get product %v\n", err)
+			c.JSON(500, gin.H{"error": "Something went wrong with server"})
+			return
+		}
+
+		if order.Passcode == nil {
+			log.Println("Passcode is not valid")
+			c.JSON(401, gin.H{"error": "not autorize to order"})
+			return
+		}
+
+		if err = bcrypt.CompareHashAndPassword([]byte(*order.Passcode), []byte(passcode)); err != nil {
+			log.Println("Passcode is not match")
+			c.JSON(401, gin.H{"error": "not autorize to order"})
+			return
+		}
+
+		order.Passcode = nil
+		c.JSON(200, order)
 	}
 }
