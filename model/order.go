@@ -41,6 +41,13 @@ type OrderWithDetail struct {
 	Details []OrderDetail `json:"detail"`
 }
 
+type Confirm struct {
+	Amount        int64  `json:"amount" binding:"required"`
+	Bank          string `json:"bank" binding:"required"`
+	AccountNumber string `json:"accountNumber" binding:"required"`
+	Passcode      string `json:"passcode" binding:"required"`
+}
+
 func CreateOrder(db *sql.DB, order Order, details []OrderDetail) error {
 	if db == nil {
 		return ErrorDBNil
@@ -73,5 +80,33 @@ func CreateOrder(db *sql.DB, order Order, details []OrderDetail) error {
 		return err
 	}
 
+	return nil
+}
+
+func SelectOrderByID(db *sql.DB, id string) (Order, error) {
+	if db == nil {
+		return Order{}, nil
+	}
+
+	query := `SELECT id, email, address, passcode, paid_at, paid_account, paid_bank, grand_total FROM orders WHERE id=$1`
+
+	var order Order
+	row := db.QueryRow(query, id)
+	err := row.Scan(&order.ID, &order.Email, &order.Address, &order.Passcode, &order.PaidAt, &order.PaidAccountNumber, &order.PaidBank, &order.GrandTotal)
+	if err != nil {
+		return Order{}, err
+	}
+
+	return order, nil
+}
+
+func UpdateOrderByID(db *sql.DB, id string, confirm Confirm, paidAt time.Time) error {
+	if db == nil {
+		return ErrorDBNil
+	}
+	query := `UPDATE orders SET paid_at=$1, paid_bank=$2, paid_account=$3 WHERE id=$4`
+	if _, err := db.Exec(query, paidAt, confirm.Bank, confirm.AccountNumber, id); err != nil {
+		return err
+	}
 	return nil
 }

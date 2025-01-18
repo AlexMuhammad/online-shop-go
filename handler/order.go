@@ -100,7 +100,59 @@ func generatePasscode(length int) string {
 
 func ConfirmOrder(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// TODO: get id param
+		id := c.Param("id")
+		// TODO: read request body
+		var requstBody model.Confirm
+		if err := c.BindJSON(&requstBody); err != nil {
+			log.Printf("Something went wrong %v\n", err)
+			c.JSON(400, gin.H{"error": err})
+			return
+		}
+		// TODO: get order data from db
+		order, err := model.SelectOrderByID(db, id)
+		if err != nil {
+			log.Printf("Something went wrong when get product %v\n", err)
+			c.JSON(500, gin.H{"error": "Something went wrong with server"})
+			return
+		}
+		if order.Passcode == nil {
+			log.Println("Passcode is not valid")
+			c.JSON(401, gin.H{"error": "not autorize to order"})
+			return
+		}
 
+		// TODO: match passcode
+		if err = bcrypt.CompareHashAndPassword([]byte(*order.Passcode), []byte(requstBody.Passcode)); err != nil {
+			log.Println("Passcode is not match")
+			c.JSON(401, gin.H{"error": "not autorize to order"})
+			return
+		}
+		// TODO: make sure order which unpaid
+		if order.PaidAt != nil {
+			log.Println("Order had been paid")
+			c.JSON(400, gin.H{"error": "Order had been paid"})
+			return
+		}
+		// TODO: match amount orders
+		if order.GrandTotal != requstBody.Amount {
+			log.Println("Check your order amout")
+			c.JSON(400, gin.H{"error": "Check your order amout"})
+			return
+		}
+		// TODO: update order information
+		current := time.Now()
+		if err = model.UpdateOrderByID(db, id, requstBody, current); err != nil {
+			log.Println("Something went wrong when update order data")
+			c.JSON(500, gin.H{"error": "Something went wrong with server"})
+			return
+		}
+		order.PaidAccountNumber = &requstBody.AccountNumber
+		order.PaidBank = &requstBody.Bank
+		order.PaidAt = &current
+		order.Passcode = nil
+
+		c.JSON(200, order)
 	}
 }
 func GetOrder(db *sql.DB) gin.HandlerFunc {
