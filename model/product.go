@@ -64,14 +64,14 @@ func SelectProductIn(db *sql.DB, ids []string) ([]Product, error) {
 	}
 
 	placeholders := []string{}
-	args := []any{}
+	arg := []any{}
 	for i, id := range ids {
 		placeholders = append(placeholders, fmt.Sprintf("$%d", i+1))
-		args = append(args, id)
+		arg = append(arg, id)
 	}
 
 	query := fmt.Sprintf(`SELECT id, name, price FROM products WHERE is_deleted = false AND id IN (%s);`, strings.Join(placeholders, ","))
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(query, arg...)
 	if err != nil {
 		return nil, err
 	}
